@@ -43,10 +43,17 @@ app.get('/api', (req, res, next) => {
 
 app.get('/api/:ts', (req, res, next) => {
   let ts = req.params.ts;
-  if (/\d{5,}/.test(req.params.ts))
-    ts = parseInt(req.params.ts);
-  const aDate = new Date(ts);
-  if (aDate.toString() === "Invalid Date") return next(new Error("Invalid Date"));
+  let aDate;
+  if (/\d{5,}/.test(ts))
+    aDate = new Date(parseInt(ts));
+  else {
+    if (/UTC/ig.test(ts))
+      aDate = new Date(ts);
+    else
+      aDate = new Date(Date.parse(ts + ' UTC'));
+  }
+  if (aDate.toString() === "Invalid Date")
+    return next(new Error("Invalid Date"));
   result = {
     unix: aDate.getTime(),
     utc: aDate.toUTCString()
@@ -61,11 +68,12 @@ app.use((err, req, res, next) => {
 });
 
 // listen for requests :)
-/*
+/* 
 var listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
 */
+
 let httpsServer = https.createServer(credentials, app);
 httpsServer.listen(process.env.PORT, function() {
   console.log('Your app is listening on port ' + httpsServer.address().port);
