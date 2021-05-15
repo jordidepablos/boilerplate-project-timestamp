@@ -2,6 +2,13 @@
 // where your node app starts
 require('dotenv').config();
 
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const privateKey = fs.readFileSync('certs/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('certs/cert.pem', 'utf8');
+const credentials = { key: privateKey, cert: certificate };
+
 // init project
 const express = require('express');
 const app = express();
@@ -47,6 +54,12 @@ app.get('/api/:ts', (req, res, err) => {
 });
 
 // listen for requests :)
+/*
 var listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
+});
+*/
+let httpsServer = https.createServer(credentials, app);
+httpsServer.listen(process.env.PORT, function() {
+  console.log('Your app is listening on port ' + httpsServer.address().port);
 });
